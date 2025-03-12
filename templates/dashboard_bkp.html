@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+			<main class="content">
+				<div class="container-fluid p-0 h-100 d-flex align-items-center flex-column">
+
+                    <div id="form-wrapper" class="row w-75">
+                        <!-- <div class="col-md-2">
+                            <img src="{% static 'img/robot-icon.jpg' %}" class="w-100" alt="">
+                        </div> -->
+                        <div class="col-md-12">
+                            <div class="card" id="search-form-container">
+								<div class="card-body">
+                                    <form class="form">
+                                        <div class="mb-2 position-menu-within">
+                                            <select id="chat-models" class="mb-2" name="models"  multiple="multiple">
+                                                <option value="llama">Llm 1</option>
+                                                <option value="deepseek">Llm 2</option>
+                                                <option value="mistralai">Llm 3</option>
+                                                <option value="qwen">Llm 4</option>
+                                                <option value="gemini">Llm 5</option>
+                                            </select>
+                                        </div>
+                                        <div class="d-flex">
+                                            <div class="form-group mb-0 mr-2" style="width: 90%;">
+                                                <textarea class="form-control w-100" rows="2" placeholder="Ask me anything related to finance..." required></textarea>
+                                            </div>
+                                            <button type="submit" class="btn custom-primary-btn d-flex justify-content-center align-items-center rounded-circle">
+                                                <img src="{% static 'img/send-icon.png' %}" alt="" width="30px">
+                                            </button>
+                                        </div>
+                                    </form>
+								</div>
+							</div>
+                        </div>
+                    </div>
+
+                    <div class="row w-100">
+                        <div id="prompt-results">
+                            
+                        </div>
+                        <div id="summarize-btn-container" class="text-center"></div>
+                    </div>
+
+				</div>
+			</main>
+
+
+		</div>
+	</div>
+
+    <!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+	<script src="{% static 'js/bootstrap-multiselect.js' %}"></script> -->
+
+    <script src="{% static 'js/app.js' %}"></script>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector(".form");
+            const textarea = form.querySelector("textarea");
+            const modelSelect = form.querySelector("select");
+            const resultsContainer = document.getElementById("prompt-results");
+            const formContainer = document.getElementById("form-wrapper");
+
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
+
+                resultsContainer.innerHTML = '';
+
+                formContainer.classList.add("move-to-top");
+
+                const userQuery = textarea.value.trim();
+                const selectedModels = Array.from(modelSelect.selectedOptions).map(opt => opt.value);
+
+                if (!userQuery || selectedModels.length === 0) return;
+
+                // Create a new container for this batch
+                const batchContainer = document.createElement("div");
+                batchContainer.classList.add("batch-container");
+
+                resultsContainer.appendChild(batchContainer); // Append new batch container
+
+                const requests = selectedModels.map((model, index) => fetchResponse(userQuery, model, index + 1, batchContainer));
+
+                // Execute all requests asynchronously
+                await Promise.all(requests);
+
+                insertSummarizeButton();
+
+                textarea.value = ""; // Clear input after submission
+            });
+
+            let modelLoaderUrl = "{% static 'img/model-loader.gif' %}";
+
+            async function fetchResponse(query, model, index, batchContainer) {
+                const messageDiv = document.createElement("div");
+                messageDiv.classList.add("rounded", "model-response-container", `model-${model}`);
+                messageDiv.innerHTML = `
+                    <div class="loader-container">
+                        <p class="text-center">LLM ${index}</p>
+                        <img src="${modelLoaderUrl}" class="m-auto" style="width: 100px;" />
+                    </div>`;
+                batchContainer.appendChild(messageDiv); // Append to the batch container
+
+                // Create an AbortController to enforce timeout
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
+                try {
+                    const response = await fetch("/chatbot/chat/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ query: query, model: model }),
+                        signal: controller.signal // Pass signal to fetch
+                    });
+
+                    clearTimeout(timeout); // Clear timeout if request succeeds
+
+                    const data = await response.json();
+                    if (data.response) {
+                        let cleanedResponse = data.response
+                            .replace(/```html/g, "")
+                            .replace(/```/g, "")
+                            .replace(/<style[\s\S]*?<\/style>/gi, "")
+                            .trim();
+
+                        messageDiv.innerHTML = `
+                            <div class="model-response-container">
+                                <div class="response-model-header">
+                                    <h3 class="response-model-name">LLM ${index}:</h3>
+                                    <div class="response-model-desc">${model}: ${data.llm_version}</div>
+                                </div>
+                                <div class="model-response-content">${cleanedResponse}</div>
+                            </div>
+                        `;
+
+                        toggleModelName()
+
+                        const checkboxDiv = document.createElement("div");
+                        checkboxDiv.classList.add("form-check", "custom-form-checkbox");
+
+                        // Create "Check Model" checkbox
+                        const checkModelDiv = document.createElement("div");
+                        checkModelDiv.classList.add("checkbox-wrapper");
+
+                        const checkModel = document.createElement("input");
+                        checkModel.type = "checkbox";
+                        checkModel.classList.add("form-check-input model-check");
+                        checkModel.value = `${model}`;
+                        checkModel.checked = true; // Default checked
+                        checkModelDiv.appendChild(checkModel);
+
+                        const checkModelLabel = document.createElement("label");
+                        checkModelLabel.textContent = "Model";
+                        checkModelLabel.classList.add("form-check-label");
+                        checkModelDiv.appendChild(checkModelLabel);
+
+                        checkboxDiv.appendChild(checkModelDiv);
+
+                        // Create "Check Text" checkbox
+                        const checkTextDiv = document.createElement("div");
+                        checkTextDiv.classList.add("checkbox-wrapper");
+
+                        const checkText = document.createElement("input");
+                        checkText.type = "checkbox";
+                        checkText.classList.add("form-check-input text-check");
+                        checkText.value = `${model}`;
+                        checkText.checked = true; // Default checked
+                        checkTextDiv.appendChild(checkText);
+
+                        const checkTextLabel = document.createElement("label");
+                        checkTextLabel.textContent = "Text";
+                        checkTextLabel.classList.add("form-check-label");
+                        checkTextDiv.appendChild(checkTextLabel);
+
+                        checkboxDiv.appendChild(checkTextDiv);
+
+                        messageDiv.appendChild(checkboxDiv);
+                    } else {
+                        messageDiv.innerHTML = `<strong>LLM ${index}</strong>: No response.`;
+                    }
+                } catch (error) {
+                    if (error.name === "AbortError") {
+                        messageDiv.innerHTML = `<strong>LLM ${index}</strong>: Request timed out.`;
+                    } else {
+                        messageDiv.innerHTML = `<strong>LLM ${index}</strong>: Error fetching response.`;
+                    }
+                }
+            }
+
+        });
+
+
+        function insertSummarizeButton() {
+            const summarizeContainer = document.getElementById("summarize-btn-container");
+            
+            // Check if the button already exists to prevent duplicates
+            if (!document.getElementById("summarize-btn")) {
+                const summarizeButton = document.createElement("button");
+                summarizeButton.id = "summarize-btn";
+                summarizeButton.className = "btn btn-primary mt-3";
+                summarizeButton.textContent = "Summarize Responses";
+                
+                summarizeButton.addEventListener("click", summarizeCheckedResponses);
+                
+                summarizeContainer.appendChild(summarizeButton);
+            }
+        }
+
+        
+
+        async function summarizeCheckedResponses() {
+            // Wait for the DOM to update before selecting checkboxes
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            // Select the last child div inside #prompt-results
+            const lastContainer = document.querySelector("#prompt-results > div:last-child");
+
+            if (!lastContainer) {
+                alert("No responses available for summarization.");
+                return;
+            }
+
+            // Find checked checkboxes inside the last container
+            const checkboxes = lastContainer.querySelectorAll(".form-check-input:checked");
+            
+            // console.log("Found checkboxes inside last batch:", checkboxes);
+
+            const checkedModels = Array.from(checkboxes).map(checkbox => checkbox.value);
+            
+
+            // console.log("Checked Models:", checkedModels);
+
+            if (checkedModels.length === 0) {
+                alert("Please select at least one response to summarize.");
+                return;
+            }
+
+            let summaryLoaderUrl = "{% static 'img/summary-loader.gif' %}";
+
+            const resultsContainer = document.getElementById("prompt-results");
+            const summarizeButton = document.getElementById("summarize-btn");
+
+            // Hide the summarize button during summarization
+            if (summarizeButton) summarizeButton.style.display = "none";
+
+            // Collapse previous responses
+            document.querySelectorAll(".batch-container").forEach(container => {
+                container.classList.add('collapsed');
+                // Skip if the container already has a toggle button
+                if (container.querySelector(".toggle-collapse-btn-wrapper")) return;
+
+                // Create a toggle button
+                const toggleBtnWrapper = document.createElement("div")
+                toggleBtnWrapper.classList.add("toggle-collapse-btn-wrapper");
+                const toggleBtn = document.createElement("button");
+                toggleBtn.textContent = container.classList.contains("collapsed") ? "Expand" : "Collapse";
+                toggleBtn.classList.add("toggle-collapse-btn");
+                toggleBtnWrapper.appendChild(toggleBtn)
+
+                // Append button to the container
+                container.appendChild(toggleBtnWrapper);
+
+                // Handle button click
+                toggleBtn.addEventListener("click", function () {
+                    container.classList.toggle("collapsed");
+                    toggleBtn.textContent = container.classList.contains("collapsed") ? "Expand" : "Collapse";
+                });
+            });
+
+
+            // Collapse previous summary containers before adding a new one
+            document.querySelectorAll(".summary-container").forEach(summary => {
+                if (summary.querySelector(".toggle-collapse-btn-wrapper")) return;
+
+                summary.classList.add('collapsed');
+                // Create a toggle button
+                const toggleBtnWrapper = document.createElement("div")
+                toggleBtnWrapper.classList.add("toggle-collapse-btn-wrapper");
+                const toggleBtn = document.createElement("button");
+                toggleBtn.textContent = summary.classList.contains("collapsed") ? "Expand" : "Collapse";
+                toggleBtn.classList.add("toggle-collapse-btn");
+                toggleBtnWrapper.appendChild(toggleBtn)
+
+                // Append button to the summary
+                summary.appendChild(toggleBtnWrapper);
+
+                // Handle button click
+                toggleBtn.addEventListener("click", function () {
+                    summary.classList.toggle("collapsed");
+                    toggleBtn.textContent = summary.classList.contains("collapsed") ? "Expand" : "Collapse";
+                });
+            });
+
+            // Create a new summary container
+            const summaryContainer = document.createElement("div");
+            summaryContainer.classList.add("summary-container");
+            resultsContainer.appendChild(summaryContainer);
+
+            // Function to create a loading element for each model
+            function createLoadingElement(model) {
+                const messageDiv = document.createElement("div");
+                messageDiv.classList.add("rounded", "model-response-container", `model-${model}`);
+                messageDiv.innerHTML = `
+                    <div class="loader-container">
+                        <p class="text-center"> Generating summary...</p>
+                        <img src="${summaryLoaderUrl}" class="m-auto" style="width: 100px;" />
+                    </div>`;
+                summaryContainer.appendChild(messageDiv);
+                return messageDiv;
+            }
+
+            // Store reference to each loading element
+            const loadingElements = {};
+            checkedModels.forEach(model => {
+                loadingElements[model] = createLoadingElement(model);
+            });
+
+            // Send requests asynchronously and append responses as they arrive
+            const fetchPromises = checkedModels.map(async (model, index) => {
+                const url = checkedModels.length === 1 
+                ? `/chatbot/summarize/?single_model=true` 
+                : `/chatbot/summarize/`;
+
+                try {
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ models: [model] }), // Send one model per request
+                    });
+
+                    const data = await response.json();
+
+                    if (data.summaries && data.summaries[model]) {
+                        let cleanedSummary = data.summaries[model]
+                            .replace(/```html/g, "")
+                            .replace(/```/g, "")
+                            .replace(/<style[\s\S]*?<\/style>/gi, "")
+                            .trim();
+
+                        const summaryDiv = document.createElement("div");
+                        summaryDiv.classList.add("rounded", "model-response-container", `model-${model}`);
+                     
+                        summaryDiv.innerHTML = `
+                            <div class="model-response-container">
+                                <div class="response-model-header">
+                                    <h3 class="response-model-name">LLM ${index}: Summary</h3>
+                                    <div class="response-model-desc">${model}: ${data.llm_version}</div>
+                                </div>
+                                <div class="model-response-content">${cleanedSummary}</div>
+                            </div>
+                        `;
+
+                        toggleModelName();
+
+                        // Only add checkbox if more than one model
+                        if (checkedModels.length > 1) {
+                            const checkboxDiv = document.createElement("div");
+                            checkboxDiv.classList.add("form-check", "custom-form-checkbox");
+
+                            const checkbox = document.createElement("input");
+                            checkbox.type = "checkbox";
+                            checkbox.classList.add("form-check-input");
+                            checkbox.value = model;
+                            checkbox.checked = true;
+
+                            checkboxDiv.appendChild(checkbox);
+                            summaryDiv.appendChild(checkboxDiv);
+                        }
+
+                        // Replace loading element with actual response
+                        loadingElements[model].replaceWith(summaryDiv);
+                    } else {
+                        loadingElements[model].innerHTML = `<p class="text-center">${model} failed to generate a summary.</p>`;
+                    }
+                } catch (error) {
+                    console.error(`Error summarizing ${model}:`, error);
+                    loadingElements[model].innerHTML = `<p class="text-center text-danger">Error summarizing ${model}.</p>`;
+                }
+            });
+
+            // Wait for all requests to complete
+            await Promise.all(fetchPromises);
+
+            if(checkedModels.length === 1) {
+                updateChatHistoryMenu();
+            }
+
+            // Show summarize button again after all requests finish
+            if (summarizeButton) {
+                summarizeButton.style.display = checkedModels.length === 1 ? "none" : "block";
+            }
+
+        }
+
+
+        function toggleModelName() {
+            const correctPassword = "password123";
+
+            document.querySelectorAll(".response-model-name").forEach((element) => {
+                element.onclick = function () {  
+                    const description = this.nextElementSibling;
+
+                    if (description.style.display === "block") {
+                        // If already visible, hide it
+                        description.style.display = "none";
+                    } else {
+                        // Ask for password before showing
+                        const userPassword = prompt("Enter the password to view details:");
+
+                        if (userPassword === correctPassword) {
+                            description.style.display = "block";
+                        } else {
+                            alert("Incorrect password! Access denied.");
+                        }
+                    }
+                };
+            });
+        }
+
+
+        // Function to show/hide the summarize button based on checked responses
+        function toggleSummarizeButton() {
+            const checkedModels = document.querySelectorAll(".form-check-input:checked");
+            const summarizeButton = document.getElementById("summarize-btn");
+
+            if (checkedModels.length > 1) {
+                if (!summarizeButton) {
+                    insertSummarizeButton();
+                } else {
+                    summarizeButton.style.display = "block"; // Reappear if needed
+                }
+            } else if (summarizeButton) {
+                summarizeButton.remove(); // Remove summarize button when only one model is checked
+            }
+        }
+
+
+        function updateChatHistoryMenu() {
+            fetch("/chatbot/fetch-chat-history/", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("menu data: ", data);
+                
+                const menu = document.querySelector("#chat-history-menu");
+                menu.innerHTML = "";  // Clear the current menu
+                
+                data.chat_history.forEach(chat => {
+                    const listItem = document.createElement("li");
+                    const link = document.createElement("a");
+                    link.href = `/chatbot/chat-detail/${chat.id}/`;  // Adjust to your actual detail view URL
+                    link.classList.add('sidebar-link');
+                    let truncatedPrompt = chat.prompt.length > 20 ? chat.prompt.slice(0, 20) + '...' : chat.prompt;
+                    link.textContent = truncatedPrompt;
+                    listItem.appendChild(link);
+                    menu.appendChild(listItem);
+                });
+            })
+            .catch(error => {
+                console.error("Failed to update chat history menu:", error);
+            });
+        }
+
+        updateChatHistoryMenu()
+
+        $(document).ready(function() {
+            $('#chat-models').multiselect({
+                includeSelectAllOption:true,
+                selectAllText:' Select all',
+            });
+        });
+ 
+
+        
+    </script>
+    
+{% endblock %}
+        

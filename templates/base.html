@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="description" content="Responsive Admin &amp; Dashboard Template based on Bootstrap 5">
+	<meta name="author" content="AdminKit">
+	<meta name="keywords" content="adminkit, bootstrap, bootstrap 5, admin, dashboard, template, responsive, css, sass, html, theme, front-end, ui kit, web">
+
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link rel="shortcut icon" href="img/icons/icon-48x48.png" />
+
+	<link rel="canonical" href="https://demo-basic.adminkit.io/" />
+
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-multiselect@0.9.15/dist/css/bootstrap-multiselect.css" rel="stylesheet" />
+
+	<title>AI Chatbot Demo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <script type="text/javascript" src="{% static 'js/jquery-2.2.4.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap.bundle-4.5.2.min.js' %}"></script>
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap-multiselect.css' %}" type="text/css">
+    <script type="text/javascript" src="{% static 'js/bootstrap-multiselect.js' %}"></script>
+
+    <link href="{% static 'css/app.css' %}" rel="stylesheet">
+	<link href="{% static 'css/main.css' %}" rel="stylesheet">
+
+</head>
+
+<body>
+	<div class="wrapper">
+		<nav id="sidebar" class="sidebar js-sidebar">
+			<div class="sidebar-content js-simplebar">
+				<a class="sidebar-brand text-center">
+                    <a class="sidebar-brand" href="">
+                        <span class="align-middle">Alphalytix AI</span>
+                    </a>
+                </a>
+
+                <div class="h-100 d-flex flex-column justify-content-between">
+                    <div></div>
+
+                    <ul class="sidebar-nav">
+    
+                        <li class="sidebar-item active">
+                            <a class="sidebar-link" href="{% url 'dashboard' %}">
+                                <i class="align-middle" data-feather="sliders"></i> <span class="align-middle">Dashboard</span>
+                            </a>
+                        </li>
+
+                        <ul class="sidebar-nav" id="chat-history-menu">
+                            {% for chat in chat_history_menu %}
+                                <li>
+                                    <a class="sidebar-link" href="{% url 'chat_detail' chat.id %}">{{ chat.prompt|truncatechars:20 }}</a>
+                                </li>
+                            {% empty %}
+                                <li>No chat history available</li>
+                            {% endfor %}
+                        </ul>
+    
+                    </ul>
+
+                    <div class="pb-5">
+                        <ul class="sidebar-nav">
+                            {% if user.is_authenticated and user.is_staff %}
+                                <li class="nav-item">
+                                    <a class="sidebar-link" href="{% url 'users' %}">All Users</a>
+                                </li>
+                            {% endif %}
+                            <li class="sidebar-item">
+                                <a class="sidebar-link" href="{% url 'edit_profile' %}">Edit Profile</a>
+                            </li>
+                            <li class="sidebar-item mt-5">
+                                <a class="sidebar-link logout-link" href="{% url 'logout' %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-lock align-middle me-2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                    <span class="align-middle">Logout</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+			</div>
+		</nav>
+
+		<div class="main">
+			<nav class="navbar navbar-expand">
+				<a class="sidebar-toggle js-sidebar-toggle">
+                    <i class="hamburger align-self-center"></i>
+                </a>
+
+				
+			</nav>
+
+            {% block content %}{% endblock %}
+
+
+
+            <script>
+                function updateChatHistoryMenu() {
+                    fetch("/chatbot/fetch-chat-history/", {
+                        method: "GET",
+                        headers: { "Content-Type": "application/json" },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("menu data: ", data);
+                        
+                        const menu = document.querySelector("#chat-history-menu");
+                        menu.innerHTML = "";  // Clear the current menu
+                        
+                        data.chat_history.forEach(chat => {
+                            const listItem = document.createElement("li");
+                            const link = document.createElement("a");
+                            link.href = `/chatbot/chat-detail/${chat.id}/`;  // Adjust to your actual detail view URL
+                            link.classList.add('sidebar-link');
+                            let truncatedPrompt = chat.prompt.length > 20 ? chat.prompt.slice(0, 20) + '...' : chat.prompt;
+                            link.textContent = truncatedPrompt;
+                            listItem.appendChild(link);
+                            menu.appendChild(listItem);
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Failed to update chat history menu:", error);
+                    });
+                }
+
+                updateChatHistoryMenu()
+            </script>
+    </body>
+
+</html>

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+			<main class="content">
+				<div class="container-fluid p-0 h-100 d-flex align-items-center flex-column">
+
+                    <div id="single-chat-container" class="row w-75">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'dashboard' %}" class="btn btn-dark">Back</a>
+                        </div>
+
+                        <h3>{{ chat.prompt }}</h3>
+                        
+                        <div class="single-chat-response">{{ chat.response|clean_html|safe }}</div>
+
+                        
+                    </div>
+
+				</div>
+			</main>
+
+		</div>
+	</div>
+
+    <!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+	<script src="{% static 'js/bootstrap-multiselect.js' %}"></script> -->
+
+    <script src="{% static 'js/app.js' %}"></script>
+
+
+{% endblock %}
+        

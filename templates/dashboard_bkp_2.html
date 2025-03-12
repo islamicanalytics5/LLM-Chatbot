@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<style>
+    .new-message {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: slide-up 0.5s ease-in-out forwards;
+    }
+
+    .message {
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin: 5px 0;
+        display: block;
+        opacity: 1;
+        transition: all 0.5s ease-in-out;
+    }
+
+    .user-message {
+        background-color: #007bff;
+        color: white;
+        text-align: right;
+    }
+
+    .new-message {
+        background-color: #f1f1f1;
+        color: black;
+    }
+
+    .fade-in {
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeInUp 0.5s forwards;
+    }
+
+    .chatbox-messages {
+        overflow-y: auto;
+    }
+
+    .chatbox-messages::-webkit-scrollbar-track
+    {
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
+        background-color: #F5F5F5;
+        border-radius: 10px;
+    }
+
+    .chatbox-messages::-webkit-scrollbar
+    {
+        width: 10px;
+        background-color: #F5F5F5;
+    }
+
+    .chatbox-messages::-webkit-scrollbar-thumb
+    {
+        border-radius: 10px;
+        background-color: #FFF;
+        background-image: -webkit-linear-gradient(top, #e4f5fc 0%, #bfe8f9 50%,#9fd8ef 51%, #2ab0ed 100%);
+    }
+
+    @keyframes slide-up {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+</style>
+<div class="text-center">
+    <h2>Welcome to Your Dashboard</h2>
+    <a href="{% url 'logout' %}" class="btn btn-danger mt-3">Logout</a>
+</div>
+
+<div>
+    <button class="chatbot-btn" onclick="toggleChatbox()">💬</button>
+    
+    <div id="chatbox" class="chatbox-container">
+        <div class="chatbox-header">
+            <h5 class="m-0">Chatbot</h5>
+            <button class="btn btn-sm btn-outline-secondary" onclick="expandChatbox()">🔳</button>
+        </div>
+        <div class="chatbox-content">
+            <div class="chatbox-messages message" id="chatMessages">
+                <p><strong>Bot:</strong> Hello! How can I assist you today?</p>
+            </div>
+            <form id="chatForm">
+                {% csrf_token %}
+                <div class="chatbox-footer">
+                    <select id="model-input" name="models" multiple="multiple">
+                        <option value="openai">OpenAI</option>
+                        <option value="llama">Llama</option>
+                        <option value="model3">Model 3</option>
+                        <option value="model4">Model 4</option>
+                        <option value="model5">Model 5</option>
+                    </select>
+                    <div class="form-inner">
+                        <textarea class="form-control" name="query" rows="2" placeholder="Type your message..."></textarea>
+                        <button class="btn btn-primary">Send</button>
+                    </div>
+                </div>
+            </form>
+            <!-- <div id="" class="htmx-indicator">Loading...</div> -->
+        </div>
+        
+        
+    </div>
+</div>
+
+<script>
+
+    $(document).ready(function() {
+        $('#model-input').multiselect({
+            includeSelectAllOption: true,
+        })
+        const dropdownButton = document.querySelector(".dropdown-toggle");
+        const dropdownMenu = document.querySelector(".dropdown-menu");
+
+        dropdownButton.addEventListener("click", function (event) {
+            event.stopPropagation(); // Prevents event from bubbling up
+            dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
+        });
+
+        // Hide the menu when clicking outside
+        document.addEventListener("click", function (event) {
+            if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                dropdownMenu.style.display = "none";
+            }
+        });
+    })
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            let form = event.target;
+            let textarea = form.querySelector(".form-control");
+            let query = textarea.value.trim();
+            let selectedModels = Array.from(form.querySelector("#model-input").selectedOptions).map(opt => opt.value);
+
+            if (!query || selectedModels.length === 0) {
+                alert("Please enter a message and select at least one model.");
+                return;
+            }
+
+            let chatMessages = document.getElementById("chatMessages");
+
+            // Append user query first
+            let userMessage = document.createElement("p");
+            userMessage.classList.add("message", "user-message", "fade-in");
+            userMessage.innerHTML = `<strong>User:</strong> ${query}`;
+            chatMessages.appendChild(userMessage);
+
+            
+
+            const url = '{% url "chatbot_response" %}';
+
+            // Send the first request with HTMX
+            setTimeout(function () {
+                // Show loader
+                let loader = document.createElement("p");
+                loader.classList.add("loader-message", "fade-in");
+                loader.innerHTML = `<strong>Bot:</strong> Processing...`;
+                chatMessages.appendChild(loader);
+
+                htmx.ajax('POST', url, {
+                    target: "#chatMessages",
+                    swap: "beforeend",
+                    values: { query: query, models: selectedModels },
+                    headers: { "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]")?.value || "" }
+                }).then(function (response) {
+                    // Remove loader after response comes
+                    loader.remove();
+
+                    // Scroll to the bottom after the response is inserted
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                });
+
+
+            }, 500);
+
+            // Clear textarea after submission
+            textarea.value = "";
+        });
+    });
+
+
+    
+
+    function toggleChatbox() {
+        let chatbox = document.getElementById('chatbox');
+        chatbox.style.display = (chatbox.style.display === 'none' || chatbox.style.display === '') ? 'block' : 'none';
+    }
+
+    function expandChatbox() {
+        let chatbox = document.getElementById('chatbox');
+        chatbox.classList.toggle('chatbox-expanded');
+    }
+</script>
+{% endblock %}
