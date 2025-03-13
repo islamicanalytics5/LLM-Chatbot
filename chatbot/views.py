@@ -330,13 +330,13 @@ def send_review(request):
                 return JsonResponse({"error": "Review cannot be empty!"}, status=400)
 
             subject = f"New Review for {model_name}"
-            email_body = f"A new review has been submitted for {model_name}:\n\nFeedback:\n{review_text}"
+            email_body = f"A new review has been submitted for {model_name}:\n\n\n{review_text}"
 
             send_mail(
                 subject,
                 email_body,
                 settings.DEFAULT_FROM_EMAIL,  # Sender email from settings
-                ["analyticsislamic@gmail.com"],  # Replace with your recipient email
+                ["islamicanalytics5@gmail.com"],  # Replace with your recipient email
                 fail_silently=False,
             )
 
