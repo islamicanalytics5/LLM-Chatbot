@@ -30,8 +30,8 @@ SECRET_KEY = 'django-insecure-i0uae5a-&of^h^ke4fqraxh3l$y57rsw+psvpydj9gq!81d%(-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['llm-chatbot-production-c95d.up.railway.app']
-CSRF_TRUSTED_ORIGINS = ['https://llm-chatbot-production-c95d.up.railway.app']
+ALLOWED_HOSTS = ['llm-chatbot-production-c95d.up.railway.app', 'islamicanalytics.com']
+CSRF_TRUSTED_ORIGINS = ['https://llm-chatbot-production-c95d.up.railway.app', 'https://www.islamicanalytics.com']
 
 
 # Application definition
