@@ -14,11 +14,8 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 # API Configuration
-LLAMA_API_KEY = "LA-b700e4c7038b4f67a11b9e8995985ce9d7d05697631441229650e8667a59c836"
-DEEPSEEK_API_KEY = "LA-b700e4c7038b4f67a11b9e8995985ce9d7d05697631441229650e8667a59c836"
-QWEN_API_KEY = "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"
-# MISTRAL_API_KEY = "LA-b700e4c7038b4f67a11b9e8995985ce9d7d05697631441229650e8667a59c836"
-MISTRAL_API_KEY = "gq2Ne8JiHk3MET5Uo3rcqZTP6teysP7s"
+LLAMA_API_KEY = "c4a6dcee-bdab-4825-a18a-313345156360"
+OPEN_ROUTER_API_KEY = "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"
 
 # Define model API mapping
 MODEL_API_MAP = {
@@ -28,22 +25,22 @@ MODEL_API_MAP = {
         "model": "llama3.3-70b"
     },
     "deepseek": {
-        "api_key": DEEPSEEK_API_KEY,
+        "api_key": LLAMA_API_KEY,
         "base_url": "https://api.llama-api.com",
         "model": "deepseek-r1"
     },
     "mistralai": {
-        "api_key": MISTRAL_API_KEY,
-        "base_url": "https://api.mistral.ai/v1",
-        "model": "mistral-large-latest"
+        "api_key": OPEN_ROUTER_API_KEY,
+        "base_url": "https://openrouter.ai/api/v1",
+        "model": "mistralai/mistral-small-24b-instruct-2501:free"
     },
     "qwen": {
-        "api_key": QWEN_API_KEY,
+        "api_key": OPEN_ROUTER_API_KEY,
         "base_url": "https://openrouter.ai/api/v1",
         "model": "qwen/qwq-32b:free"
     },
     "gemini": {
-        "api_key": QWEN_API_KEY,
+        "api_key": OPEN_ROUTER_API_KEY,
         "base_url": "https://openrouter.ai/api/v1",
         "model": "google/gemini-2.0-flash-lite-preview-02-05:free"
     }
