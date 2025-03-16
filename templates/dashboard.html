@@ -696,11 +696,11 @@
                             pdf.setTextColor(100); // Set gray text
                             pdf.setFont("helvetica", "bold"); // Make it bold if needed
                             
-                            let textWidth = pdf.getStringUnitWidth("Powered by Alphalytix") * pdf.internal.getFontSize() / pdf.internal.scaleFactor;
+                            let textWidth = pdf.getStringUnitWidth("Powered by Alphalytix Consulting") * pdf.internal.getFontSize() / pdf.internal.scaleFactor;
                             let textX = 10; // Left aligned
                             let textY = pageHeight - footerMargin; // Prevent overlap
                             
-                            pdf.text("Powered by Alphalytix", textX, textY);
+                            pdf.text("Powered by Alphalytix Consulting", textX, textY);
                         }
 
                     }).save();
