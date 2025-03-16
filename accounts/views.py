@@ -32,7 +32,7 @@ def send_verification_email(user, request):
     send_mail(
         subject,
         "",  # Leave plain text message empty
-        settings.DEFAULT_FROM_EMAIL,
+        f'Islamic Analytix <{settings.DEFAULT_FROM_EMAIL}>',
         [user.email],
         fail_silently=False,
         html_message=html_message,  # This makes the email HTML formatted

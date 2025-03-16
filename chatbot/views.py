@@ -332,7 +332,7 @@ def send_review(request):
             send_mail(
                 subject,
                 email_body,
-                settings.DEFAULT_FROM_EMAIL,  # Sender email from settings
+                f'Islamic Analytix <{settings.DEFAULT_FROM_EMAIL}>',  # Sender email from settings
                 ["islamicanalytics5@gmail.com"],  # Replace with your recipient email
                 fail_silently=False,
             )
