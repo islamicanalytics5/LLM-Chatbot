@@ -607,7 +607,15 @@
         $(document).ready(function() {
             $('#chat-models').multiselect({
                 includeSelectAllOption:true,
-                selectAllText:' Select all',
+                onChange: function (option, checked) {
+                    const selectedOptions = $('#chat-models option:selected');
+
+                    if (selectedOptions.length > 5) {
+                        // Deselect the last selected option
+                        $('#chat-models').multiselect('deselect', $(option).val());
+                        alert('You can select a maximum of 5 models.');
+                    }
+                },
             });
         });
  
