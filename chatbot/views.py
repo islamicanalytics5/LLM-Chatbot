@@ -43,6 +43,11 @@ MODEL_API_MAP = {
         "api_key": OPEN_ROUTER_API_KEY,
         "base_url": "https://openrouter.ai/api/v1",
         "model": "google/gemini-2.0-flash-lite-preview-02-05:free"
+    ,}
+    "gemini_pro": {
+        "api_key": OPEN_ROUTER_API_KEY,
+        "base_url": "https://openrouter.ai/api/v1",
+        "model": "google/gemini-2.5-pro-exp-03-25:free"
     }
 }
 
