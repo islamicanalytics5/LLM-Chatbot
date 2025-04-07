@@ -69,6 +69,15 @@
         let wpIconUrl = "{% static 'img/wp-icon.png' %}";
         let reviewIconUrl = "{% static 'img/review-icon.png' %}";
 
+        const modelDisplayNames = {
+            llama: "LLM 1",
+            deepseek: "LLM 2",
+            mistralai: "LLM 3",
+            qwen: "LLM 4",
+            gemini: "LLM 5",
+            gemini_pro: "LLM 6",
+        };
+
         document.addEventListener("DOMContentLoaded", function () {
             const form = document.querySelector(".form");
             const textarea = form.querySelector("textarea");
@@ -162,13 +171,15 @@
             let modelLoaderUrl = "{% static 'img/model-loader.gif' %}";
 
             async function fetchResponse(query, model, index, batchContainer) {
+                const modelLabel = modelDisplayNames[model] || model;
+
                 const messageDiv = document.createElement("div");
                 messageDiv.classList.add("rounded", "model-response-container", `model-${model}`);
                 // Store the LLM index in a data attribute
                 messageDiv.setAttribute("data-llm-index", index);
                 messageDiv.innerHTML = `
                     <div class="loader-container">
-                        <p class="text-center">LLM ${index}</p>
+                        <p class="text-center">${modelLabel}</p>
                         <img src="${modelLoaderUrl}" class="m-auto" style="width: 100px;" />
                     </div>`;
                 batchContainer.appendChild(messageDiv); // Append to the batch container
@@ -199,7 +210,7 @@
                         messageDiv.innerHTML = `
                             <div class="model-response-container">
                                 <div class="response-model-header">
-                                    <h3 class="response-model-name">LLM ${index}:</h3>
+                                    <h3 class="response-model-name">${modelLabel}:</h3>
                                     <div class="response-model-desc">${model}: ${data.llm_version}</div>
                                 </div>
                                 <div class="response-buttons">
@@ -257,13 +268,13 @@
                         messageDiv.appendChild(checkboxDiv);
 
                     } else {
-                        messageDiv.innerHTML = `<strong>LLM ${index}</strong>: No response.`;
+                        messageDiv.innerHTML = `<strong>${modelLabel}</strong>: No response.`;
                     }
                 } catch (error) {
                     if (error.name === "AbortError") {
-                        messageDiv.innerHTML = `<strong>LLM ${index}</strong>: Request timed out.`;
+                        messageDiv.innerHTML = `<strong>${modelLabel}</strong>: Request timed out.`;
                     } else {
-                        messageDiv.innerHTML = `<strong>LLM ${index}</strong>: Error fetching response.`;
+                        messageDiv.innerHTML = `<strong>${modelLabel}</strong>: Error fetching response.`;
                     }
                 }
             }
@@ -408,6 +419,14 @@
 
                 // Retrieve original LLM index
                 const originalIndex = originalResponseDiv ? originalResponseDiv.getAttribute("data-llm-index") : "?";
+                const originalLlmNameH3 = originalResponseDiv.querySelector('.response-model-name');
+                let originalLlmName = '';
+
+                if (originalLlmNameH3) {
+                    const text = originalLlmNameH3.textContent.trim();
+                    const match = text.match(/^([^:]+)/);
+                    originalLlmName = match ? match[1].trim() : '';
+                }
                 
                 // Create an AbortController to enforce timeout
                 const summaryController = new AbortController();
@@ -437,7 +456,7 @@
                         summaryDiv.innerHTML = `
                             <div class="model-response-container">
                                 <div class="response-model-header">
-                                    <h3 class="response-model-name">LLM ${originalIndex}: Summary</h3>
+                                    <h3 class="response-model-name">${originalLlmName}: Summary</h3>
                                     <div class="response-model-desc">${model}: ${data.llm_version}</div>
                                 </div>
                                 <div class="response-buttons">
@@ -518,7 +537,7 @@
                             initResponseDiv.innerHTML = `
                                 <div class="model-response-container">
                                     <div class="response-model-header">
-                                        <h3 class="response-model-name">LLM ${originalIndex}: Initial Response</h3>
+                                        <h3 class="response-model-name">${originalLlmName}: Initial Response</h3>
                                         <div class="response-model-desc">${model}: ${data.llm_version}</div>
                                     </div>
                                     <div class="response-buttons">
