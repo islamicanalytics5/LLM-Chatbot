@@ -30,24 +30,24 @@ MODEL_API_MAP = {
         "model": "deepseek-r1"
     },
     "mistralai": {
-        "api_key": OPEN_ROUTER_API_KEY,
-        "base_url": "https://openrouter.ai/api/v1",
-        "model": "mistralai/mistral-small-24b-instruct-2501:free"
+        "api_key": LLAMA_API_KEY,
+        "base_url": "https://api.llama-api.com",
+        "model": "mistral-7b-instruct"
     },
     "qwen": {
-        "api_key": OPEN_ROUTER_API_KEY,
-        "base_url": "https://openrouter.ai/api/v1",
-        "model": "qwen/qwq-32b:free"
+        "api_key": LLAMA_API_KEY,
+        "base_url": "https://api.llama-api.com",
+        "model": "Qwen2.5-7B"
     },
     "gemini": {
-        "api_key": OPEN_ROUTER_API_KEY,
-        "base_url": "https://openrouter.ai/api/v1",
-        "model": "google/gemini-2.0-flash-lite-preview-02-05:free"
+        "api_key": LLAMA_API_KEY,
+        "base_url": "https://api.llama-api.com",
+        "model": "gemma3-12b"
     },
     "gemini_pro": {
-        "api_key": OPEN_ROUTER_API_KEY,
-        "base_url": "https://openrouter.ai/api/v1",
-        "model": "google/gemini-2.5-pro-exp-03-25:free"
+        "api_key": LLAMA_API_KEY,
+        "base_url": "https://api.llama-api.com",
+        "model": "gemma3-27b"
     }
 }
 
