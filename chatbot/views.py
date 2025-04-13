@@ -65,20 +65,59 @@ def precheck_view(request):
         client = OpenAI(api_key=LLAMA_API_KEY, base_url="https://api.llama-api.com")
 
         # Define the prompt for the LLM
+        # prompt = (
+        #     "Check if the following question is related to finance, banking, Islamic finance, investment, stocks, or startups. "
+        #     "Return only 'yes' or 'no' as the answer. Do not provide any extra information or explanation.\n\n"
+        #     "Examples:\n"
+        #     "1. Question: What is the difference between conventional and Islamic banking?\n"
+        #     "   Answer: yes\n"
+        #     "2. Question: How do I bake a chocolate cake?\n"
+        #     "   Answer: no\n"
+        #     "3. Question: What are the best practices for pitching a startup to investors?\n"
+        #     "   Answer: yes\n"
+        #     "4. Question: How do I calculate the return on investment for a stock?\n"
+        #     "   Answer: yes\n"
+        #     "5. Question: What is the capital of France?\n"
+        #     "   Answer: no\n\n"
+        #     f"Question: {user_input}\n"
+        #     "Answer:"
+        # )
+
         prompt = (
-            "Check if the following question is related to finance, banking, Islamic finance, investment, stocks, or startups. "
+            "Determine if the following question is related to: "
+            "finance, banking, Islamic finance, investment, stocks, startups, business funding, "
+            "or ANY business-related topic (management, marketing, economics, entrepreneurship, etc.). "
             "Return only 'yes' or 'no' as the answer. Do not provide any extra information or explanation.\n\n"
-            "Examples:\n"
-            "1. Question: What is the difference between conventional and Islamic banking?\n"
-            "   Answer: yes\n"
-            "2. Question: How do I bake a chocolate cake?\n"
-            "   Answer: no\n"
-            "3. Question: What are the best practices for pitching a startup to investors?\n"
-            "   Answer: yes\n"
-            "4. Question: How do I calculate the return on investment for a stock?\n"
-            "   Answer: yes\n"
-            "5. Question: What is the capital of France?\n"
-            "   Answer: no\n\n"
+
+            "**ALWAYS RETURN 'no' FOR THESE CASES:**\n"
+            "- Any non-finance/non-business question (weather, geography, cooking, sports, entertainment, etc.)\n"
+            "- Any adult/pornographic content\n"
+            "- Any illegal activity (hacking, fraud, etc.)\n"
+            "- Personal relationships/dating\n"
+            "- Medical/health questions\n"
+            "- Religious/political debates (unless directly related to finance/business)\n"
+            "- General tech questions (unless about business/fintech)\n\n"
+
+            "**Allowed Questions (Answer 'yes'):**\n"
+            "1. What is the difference between conventional and Islamic banking?\n"
+            "2. How do I calculate ROI for an investment?\n"
+            "3. What are the best strategies for startup fundraising?\n"
+            "4. How does supply chain management impact business efficiency?\n"
+            "5. What are the key principles of digital marketing?\n"
+            "6. How do interest rates affect the stock market?\n"
+            "7. What is a SWOT analysis in business strategy?\n\n"
+
+            "**Not Allowed Questions (Answer 'no'):**\n"
+            "1. What is the weather in Malaysia today?\n"
+            "2. How do I bake a chocolate cake?\n"
+            "3. [Any adult/explicit content]\n"
+            "4. How do I bypass bank security? (illegal)\n"
+            "5. What’s the best dating app? (relationships)\n"
+            "6. How to treat a migraine? (medical)\n"
+            "7. Who won the FIFA World Cup? (sports)\n"
+            "8. What’s the best gaming laptop? (tech, unless business-related)\n\n"
+
+            "**Strict Rule:** Answer 'yes' **only** if the question is about finance, banking, business, or investment. Otherwise, answer 'no'.\n"
             f"Question: {user_input}\n"
             "Answer:"
         )
@@ -97,8 +136,8 @@ def precheck_view(request):
             print("llm_response: ", llm_response)
 
             # Determine if the response is 'yes' or 'no'
-            # allowed = "yes" if llm_response == "yes" else "no"
-            allowed = "yes"
+            allowed = "yes" if llm_response == "yes" else "no"
+            # allowed = "yes"
 
             # Return the result as a JSON response
             return JsonResponse({"allowed": allowed})
