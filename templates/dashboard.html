@@ -119,7 +119,7 @@
                 if (isAllowed !== "yes") {
                     let stopImgUrl = "{% static 'img/stop-sign.png' %}";
                     batchContainer.innerHTML = `<div class="loader-container stop-warning">
-                            <h2 class="text-center">I am not allowed to answer of this question. Ask something related to fincance</h2>
+                            <h2 class="text-center">Apologies, but I focus only on questions related to finance. I can answer questions about both conventional and Islamic finance.<br><br>Ask another question.</h2>
                             <img src="${stopImgUrl}" class="m-auto" style="width: 100px;" />
                         </div>`;
                     return;
