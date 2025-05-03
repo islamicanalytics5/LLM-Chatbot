@@ -295,13 +295,14 @@ main.content {
 }
 
 .loader-container.stop-warning {
-  padding: 100px;
+  padding: 100px !important;
 }
 
 .loader-container.stop-warning h2 {
   color: #fff;
   margin-bottom: 50px;
   font-size: 20px;
+  line-height: 36px;
 }
 
 .sidebar, .sidebar-content {
